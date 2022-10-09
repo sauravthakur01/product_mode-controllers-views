@@ -14,7 +14,19 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  Product.create({
+  // two ways of adding userId
+
+  // Product.create({
+  // title:title,
+  // imageUrl:imageUrl,
+  // price:price,
+  // description:description,
+  //   userId : req.user.id   ///we stored user object in req.user
+  // })
+
+  ////we can use below method as we have defined user.hasmany(products)
+
+  req.user.createProduct({
     title:title,
     imageUrl:imageUrl,
     price:price,
@@ -33,8 +45,10 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect('/');
   }
   const prodId = req.params.productId;
-  Product.findByPk(prodId)
-  .then(product => {
+  req.user.getProducts()
+  // Product.findByPk(prodId)
+  .then(products => {
+    let product = products[0];
     if (!product) {
       return res.redirect('/');
     }
@@ -54,6 +68,7 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
+ 
   Product.findByPk(prodId)
   .then(product=>{
     product.title = updatedTitle;
@@ -72,17 +87,19 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
-  .then(products=>{
-    res.render('admin/products', {
-      prods: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products'
-    });
-  })
-  .catch(err=>{
-    console.log(err);
-  });  
+  // Product.findAll()
+  req.user
+    .getProducts()
+    .then(products=>{
+      res.render('admin/products', {
+        prods: products,
+        pageTitle: 'Admin Products',
+        path: '/admin/products'
+      });
+    })
+    .catch(err=>{
+     console.log(err);
+    });  
 };
 
 exports.postDeleteProduct = (req, res, next) => {
